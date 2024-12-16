@@ -1,0 +1,28 @@
+#!/bin/bash
+
+echo 'Installing a containerd, runc and CNI plugins';
+echo 'https://github.com/containerd/containerd/blob/main/docs/getting-started.md';
+echo 'wget containerd from https://github.com/containerd/containerd/releases to /root/';
+wget -O containerd-2.0.0-linux-amd64.tar.gz https://github.com/containerd/containerd/releases/download/v2.0.0/containerd-2.0.0-linux-amd64.tar.gz;
+tar Cxzvf /usr/local containerd-2.0.0-linux-amd64.tar.gz;
+echo 'If you intend to start containerd via systemd, you should also download the containerd.service';
+mkdir -p /usr/local/lib/systemd/system/;
+wget -O /usr/local/lib/systemd/system/containerd.service https://raw.githubusercontent.com/containerd/containerd/main/containerd.service;
+systemctl daemon-reload;
+systemctl enable --now containerd;
+echo 'wget runc from https://github.com/opencontainers/runc/releases';
+wget -O runc.amd64 https://github.com/opencontainers/runc/releases/download/v1.2.2/runc.amd64;
+install -m 755 runc.amd64 /usr/local/sbin/runc;
+echo 'wget CNI plugins from https://github.com/containernetworking/plugins/releases';
+wget -O cni-plugins-linux-amd64-v1.6.0.tgz https://github.com/containernetworking/plugins/releases/download/v1.6.0/cni-plugins-linux-amd64-v1.6.0.tgz;
+mkdir -p /opt/cni/bin;
+tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.6.0.tgz;
+echo 'Set default configuration of containerd';
+mkdir -p /etc/containerd/;
+containerd config default > /etc/containerd/config.toml;
+echo 'Configuring the systemd cgroup driver from https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd';
+echo '1.you need manually insert string from documentation to /etc/containerd/config.toml';
+systemctl restart containerd;
+echo '________________________________________________________________________________';
+
+
